@@ -21,15 +21,13 @@ import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TLE
 import qualified Network.HTTP.Conduit as H
 import qualified Network.HTTP.Types as HT
+import qualified Network.HTTP.Client.Conduit as HC
 import qualified Network.Info as NI
 import qualified Network.Socket as HS
 import qualified Network.Wai as W
-import qualified Yesod.Auth as YA
 import qualified Yesod.Core as YC
-import qualified Yesod.Form.Fields as YF
 import qualified Yesod.Form.Functions as YF
 import qualified Yesod.Form.Types as YF
-
 
 -- | Class used by @yesod-recaptcha@'s fields.  It should be
 -- fairly easy to implement a barebones instance of this class
@@ -45,13 +43,9 @@ import qualified Yesod.Form.Types as YF
 -- depending on the request (maybe you're serving to two
 -- different domains in the same application).
 --
--- The 'YA.YesodAuth' superclass is used only for the HTTP
--- request.  Please fill a bug report if you think that this
--- @YesodReCAPTCHA@ may be useful without @YesodAuth@.
---
 -- /Minimum complete definition:/ 'recaptchaPublicKey' and
 -- 'recaptchaPrivateKey'.
-class YA.YesodAuth site => YesodReCAPTCHA site where
+class HC.HasHttpManager site => YesodReCAPTCHA site where
     -- | Your reCAPTCHA public key.
     recaptchaPublicKey  :: YC.HandlerT site IO T.Text
     -- | Your reCAPTCHA private key.
@@ -163,7 +157,6 @@ check challenge response = do
   if Just response == backdoor
     then return Ok
     else do
-      manager    <- YA.authHttpManager <$> YC.getYesod
       privateKey <- recaptchaPrivateKey
       sockaddr   <- W.remoteHost <$> YC.waiRequest
       remoteip <- case sockaddr of
@@ -177,6 +170,7 @@ check challenge response = do
                            \please file a bug report at \
                            \<https://github.com/meteficha/yesod-recaptcha>."
                           fail "Could not find remote IP address for reCAPTCHA."
+      manager <- HC.getHttpManager <$> YC.getYesod
       let req = D.def
                   { H.method      = HT.methodPost
                   , H.host        = "www.google.com"
@@ -192,7 +186,7 @@ check challenge response = do
       case (L8.lines . H.responseBody) <$> eresp of
         Right ("true":_)      -> return Ok
         Right ("false":why:_) -> return . Error . TL.toStrict $
-                                 TLE.decodeUtf8With TEE.lenientDecode why
+                                TLE.decodeUtf8With TEE.lenientDecode why
         Right other -> do
           $(YC.logError) $ T.concat [ "Yesod.ReCAPTCHA: could not parse "
                                     , T.pack (show other) ]
@@ -209,13 +203,9 @@ data CheckRet = Ok | Error T.Text
 
 
 -- | A fake field.  Just returns the value of a field.
-fakeField :: (YC.RenderMessage site YF.FormMessage) =>
-             T.Text -- ^ Field id.
+fakeField :: T.Text -- ^ Field id.
           -> YF.MForm (YC.HandlerT site IO) (Maybe T.Text)
-fakeField fid = YC.lift $ do mt1 <- YC.lookupGetParam fid
-                             case mt1 of
-                               Nothing -> YC.lookupPostParam fid
-                               Just _  -> return mt1
+fakeField fid = (<|>) <$> YC.lookupGetParam fid <*> YC.lookupPostParam fid
 
 
 -- | Define the given 'RecaptchaOptions' for all forms declared
