@@ -24,6 +24,8 @@ Library
   Hs-source-dirs: src
   GHC-options: -Wall
   Exposed-modules: Yesod.ReCAPTCHA
+                 , Yesod.ReCAPTCHA.Class
+                 , Yesod.ReCAPTCHA.ReCAPTCHA1
   Extensions: DeriveDataTypeable FlexibleContexts TemplateHaskell
               QuasiQuotes OverloadedStrings
   Build-depends:
