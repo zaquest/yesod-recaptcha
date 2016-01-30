@@ -1,8 +1,13 @@
-module Yesod.ReCAPTCHA.Class (YesodReCAPTCHA(..)) where
+module Yesod.ReCAPTCHA.Class
+     ( YesodReCAPTCHA(..)
+     , fakeField
+     ) where
 
+import Control.Applicative
 import qualified Data.Text as T
 import qualified Network.HTTP.Client.Conduit as HC
 import qualified Yesod.Core as YC
+import qualified Yesod.Form.Types as YF
 
 -- | Class used by @yesod-recaptcha@'s fields.  It should be
 -- fairly easy to implement a barebones instance of this class
@@ -54,3 +59,10 @@ class HC.HasHttpManager site => YesodReCAPTCHA site where
     -- completely disables the backdoor.
     insecureRecaptchaBackdoor :: YC.HandlerT site IO (Maybe T.Text)
     insecureRecaptchaBackdoor = return Nothing
+
+
+
+-- | A fake field.  Just returns the value of a field.
+fakeField :: T.Text -- ^ Field id.
+          -> YF.MForm (YC.HandlerT site IO) (Maybe T.Text)
+fakeField fid = (<|>) <$> YC.lookupGetParam fid <*> YC.lookupPostParam fid

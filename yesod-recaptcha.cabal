@@ -25,11 +25,15 @@ Library
   GHC-options: -Wall
   Exposed-modules: Yesod.ReCAPTCHA
                  , Yesod.ReCAPTCHA.Class
+                 , Yesod.ReCAPTCHA.Message
                  , Yesod.ReCAPTCHA.ReCAPTCHA1
+                 , Yesod.ReCAPTCHA.ReCAPTCHA2
   Extensions: DeriveDataTypeable FlexibleContexts TemplateHaskell
               QuasiQuotes OverloadedStrings
   Build-depends:
       base           == 4.*
+    , aeson
+    , blaze-markup
     , bytestring
     , text
     , data-default
@@ -42,3 +46,4 @@ Library
     , http-conduit   >= 1.5
     , http-types
     , resourcet
+    , mtl

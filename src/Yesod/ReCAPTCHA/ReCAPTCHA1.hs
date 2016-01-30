@@ -1,3 +1,4 @@
+{-# LANGUAGE QuasiQuotes #-} -- for hlint
 module Yesod.ReCAPTCHA.ReCAPTCHA1
     ( YesodReCAPTCHA(..)
     , recaptchaAForm
@@ -6,7 +7,7 @@ module Yesod.ReCAPTCHA.ReCAPTCHA1
     , RecaptchaOptions(..)
     ) where
 
-import Control.Applicative
+import Control.Arrow (second)
 import Data.Typeable (Typeable)
 import Yesod.Core (whamlet)
 import qualified Control.Exception.Lifted as E
@@ -38,7 +39,7 @@ import Yesod.ReCAPTCHA.Class
 -- way as any other @yesod-form@ widget fails, so you may just
 -- ignore the @()@ value.
 recaptchaAForm :: YesodReCAPTCHA site => YF.AForm (YC.HandlerT site IO) ()
-recaptchaAForm = YF.formToAForm recaptchaMForm
+recaptchaAForm = YF.formToAForm $ second (:[]) <$> recaptchaMForm
 
 
 -- | Same as 'recaptchaAForm', but instead of being an
@@ -46,7 +47,7 @@ recaptchaAForm = YF.formToAForm recaptchaMForm
 recaptchaMForm :: YesodReCAPTCHA site =>
                   YF.MForm (YC.HandlerT site IO)
                            ( YF.FormResult ()
-                           , [YF.FieldView site] )
+                           , YF.FieldView site )
 recaptchaMForm = do
   challengeField <- fakeField "recaptcha_challenge_field"
   responseField  <- fakeField "recaptcha_response_field"
@@ -68,7 +69,7 @@ recaptchaMForm = do
                    , YF.fvErrors   = Nothing
                    , YF.fvRequired = True
                    }
-  return (formRet, [formView])
+  return (formRet, formView)
 
 
 -- | Widget with reCAPTCHA's HTML.
@@ -150,12 +151,6 @@ check challenge response = do
 
 -- | See 'check'.
 data CheckRet = Ok | Error T.Text
-
-
--- | A fake field.  Just returns the value of a field.
-fakeField :: T.Text -- ^ Field id.
-          -> YF.MForm (YC.HandlerT site IO) (Maybe T.Text)
-fakeField fid = (<|>) <$> YC.lookupGetParam fid <*> YC.lookupPostParam fid
 
 
 -- | Define the given 'RecaptchaOptions' for all forms declared
