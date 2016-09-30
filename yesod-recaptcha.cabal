@@ -41,6 +41,7 @@ Library
     , yesod-core     >= 1.2   && < 1.5
     , yesod-form     >= 1.3   && < 1.5
     , wai
+    , wai-extra
     , network
     , network-info   == 0.2.*
     , http-conduit   >= 1.5
