@@ -5,7 +5,6 @@ module Yesod.ReCAPTCHA.ReCAPTCHA2
     , recaptchaMForm
     ) where
 
-import Data.Monoid ((<>))
 import Control.Arrow (second)
 import Yesod.Core (whamlet)
 import qualified Control.Monad.Reader as MR
@@ -74,10 +73,7 @@ recaptchaMForm = do
 recaptchaWidget :: YesodReCAPTCHA site => YC.WidgetT site IO ()
 recaptchaWidget = do
   publicKey <- YC.handlerToWidget recaptchaPublicKey
-  isSecure  <- W.isSecure <$> YC.waiRequest
-  let proto | isSecure  = "https"
-            | otherwise = "http" :: T.Text
-  YC.addScriptRemote (proto <> "://www.google.com/recaptcha/api.js")
+  YC.addScriptRemote "//www.google.com/recaptcha/api.js"
   [whamlet| <div .g-recaptcha data-sitekey=#{publicKey}> |]
 
 
@@ -108,7 +104,7 @@ check response = do
                            \<https://github.com/meteficha/yesod-recaptcha>."
                           fail "Could not find remote IP address for reCAPTCHA."
       manager <- HC.getHttpManager <$> YC.getYesod
-      req <- H.parseUrl "https://www.google.com/recaptcha/api/siteverify"
+      req <- H.parseUrlThrow "https://www.google.com/recaptcha/api/siteverify"
       let query = [ ("secret", TE.encodeUtf8 privateKey)
                   , ("remoteip",   B8.pack       remoteip)
                   , ("response",   TE.encodeUtf8 response)

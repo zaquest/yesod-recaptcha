@@ -78,14 +78,11 @@ recaptchaWidget :: YesodReCAPTCHA site =>
                 -> YC.WidgetT site IO ()
 recaptchaWidget merr = do
   publicKey <- YC.handlerToWidget recaptchaPublicKey
-  isSecure  <- W.isSecure <$> YC.waiRequest
-  let proto | isSecure  = "https"
-            | otherwise = "http" :: T.Text
-      err = maybe "" (T.append "&error=") merr
+  let err = maybe "" (T.append "&error=") merr
   [whamlet|
-    <script src="#{proto}://www.google.com/recaptcha/api/challenge?k=#{publicKey}#{err}">
+    <script src="//www.google.com/recaptcha/api/challenge?k=#{publicKey}#{err}">
     <noscript>
-       <iframe src="#{proto}://www.google.com/recaptcha/api/noscript?k=#{publicKey}#{err}"
+       <iframe src="//www.google.com/recaptcha/api/noscript?k=#{publicKey}#{err}"
            height="300" width="500" frameborder="0">
        <br>
        <textarea name="recaptcha_challenge_field" rows="3" cols="40">
@@ -159,9 +156,7 @@ data CheckRet = Ok | Error T.Text
 --
 -- Note that this is /not/ required to use 'recaptchaAForm' or
 -- 'recaptchaMForm'.
-recaptchaOptions :: YC.Yesod site =>
-                    RecaptchaOptions
-                 -> YC.WidgetT site IO ()
+recaptchaOptions :: RecaptchaOptions -> YC.WidgetT site IO ()
 recaptchaOptions s | s == D.def = return ()
 recaptchaOptions s =
   [whamlet|
