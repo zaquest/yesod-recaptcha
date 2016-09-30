@@ -26,6 +26,7 @@ import qualified Network.HTTP.Client.Conduit as HC
 import qualified Network.Info as NI
 import qualified Network.Socket as HS
 import qualified Network.Wai as W
+import qualified Network.Wai.Request as W (appearsSecure)
 import qualified Yesod.Core as YC
 import qualified Yesod.Form.Functions as YF
 import qualified Yesod.Form.Types as YF
@@ -78,8 +79,8 @@ recaptchaWidget :: YesodReCAPTCHA site =>
                 -> YC.WidgetT site IO ()
 recaptchaWidget merr = do
   publicKey <- YC.handlerToWidget recaptchaPublicKey
-  isSecure  <- W.isSecure <$> YC.waiRequest
-  let proto | isSecure  = "https"
+  appearsSecure <- W.appearsSecure <$> YC.waiRequest
+  let proto | appearsSecure = "https"
             | otherwise = "http" :: T.Text
       err = maybe "" (T.append "&error=") merr
   [whamlet|
