@@ -11,11 +11,14 @@ import qualified Yesod.Form.Types as YF
 
 -- | Class used by @yesod-recaptcha@'s fields.  It should be
 -- fairly easy to implement a barebones instance of this class
--- for you foundation data type:
+-- for your foundation data type:
 --
 -- > instance YesodReCAPTCHA MyType where
 -- >   recaptchaPublicKey  = return "[your public key]"
 -- >   recaptchaPrivateKey = return "[your private key]"
+--
+-- > instance RenderMessage App ReCAPTCHAMessage where
+-- >   renderMessage _ _ = englishReCAPTCHAMessage
 --
 -- You may also write a more sophisticated instance.  For
 -- example, you may get these values from your @settings.yml@
