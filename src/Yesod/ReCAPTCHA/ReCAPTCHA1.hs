@@ -119,7 +119,7 @@ check challenge response = do
                            \<https://github.com/meteficha/yesod-recaptcha>."
                           fail "Could not find remote IP address for reCAPTCHA."
       manager <- HC.getHttpManager <$> YC.getYesod
-      let req = D.def
+      let req = HC.defaultRequest
                   { H.method      = HT.methodPost
                   , H.host        = "www.google.com"
                   , H.path        = "/recaptcha/api/verify"
